@@ -155,19 +155,18 @@ function compressImage(file, maxSizeKB = 500) {
   });
 }
 
-// ── رفع صورة لـ Firebase Storage ─────────
+// ── تحويل الصورة لـ Base64 (بدون Firebase Storage) ─────────
 async function uploadImage(boardId, threadId, file) {
   try {
     const compressed = await compressImage(file);
-    const ext      = 'jpg';
-    const filename = `${Date.now()}_${Math.random().toString(36).substr(2, 6)}.${ext}`;
-    const path     = `boards/${boardId}/threads/${threadId}/${filename}`;
-    const ref      = storage.ref(path);
-    await ref.put(compressed, { contentType: 'image/jpeg' });
-    const url = await ref.getDownloadURL();
-    return url;
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('فشل قراءة الصورة'));
+      reader.readAsDataURL(compressed);
+    });
   } catch (err) {
-    console.error('خطأ في رفع الصورة:', err);
+    console.error('خطأ في معالجة الصورة:', err);
     throw err;
   }
 }

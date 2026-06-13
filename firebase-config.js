@@ -1,42 +1,17 @@
-// ══════════════════════════════════════════════
-//  firebase-config.js — إعدادات Firebase
-//  ضع هنا بيانات Firebase الخاصة بك
-// ══════════════════════════════════════════════
-//
-//  خطوات الإعداد:
-//  1. اذهب إلى https://console.firebase.google.com
-//  2. أنشئ مشروع جديد
-//  3. فعّل Realtime Database واختر المنطقة
-//  4. فعّل Storage
-//  5. اذهب إلى Project Settings → Web App → انسخ config
-//  6. ضع القيم في الكائن أدناه
-//  7. في Realtime Database Rules:
-//     { "rules": { ".read": true, ".write": true } }
-//  8. في Storage Rules:
-//     rules_version = '2';
-//     service firebase.storage {
-//       match /b/{bucket}/o {
-//         match /{allPaths=**} {
-//           allow read, write: if true;
-//         }
-//       }
-//     }
-//
-// ══════════════════════════════════════════════
-
+// firebase-config.js
 const firebaseConfig = {
-  apiKey:            "ضع-api-key-هنا",
-  authDomain:        "ضع-project-id-هنا.firebaseapp.com",
-  databaseURL:       "https://ضع-project-id-هنا-default-rtdb.firebaseio.com",
-  projectId:         "ضع-project-id-هنا",
-  storageBucket:     "ضع-project-id-هنا.appspot.com",
-  messagingSenderId: "ضع-sender-id-هنا",
-  appId:             "ضع-app-id-هنا"
+  apiKey:            "AIzaSyAVJ6peYZvoQp8RhJ0aFzrsyGCXY0g2Ydw",
+  authDomain:        "achan-e85b6.firebaseapp.com",
+  databaseURL:       "https://achan-e85b6-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "achan-e85b6",
+  storageBucket:     "achan-e85b6.firebasestorage.app",
+  messagingSenderId: "206116919224",
+  appId:             "1:206116919224:web:cf02ed10683edc366e614d"
 };
 
 // تهيئة Firebase
 firebase.initializeApp(firebaseConfig);
 
-// مراجع قاعدة البيانات والتخزين
-const db      = firebase.database();
-const storage = firebase.storage();
+// مرجع قاعدة البيانات
+const db = firebase.database();
+const storage = null; // Storage غير مفعل - الصور تتحفظ كـ Base64
