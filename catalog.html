@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="أشان — كتالوج البورد">
+  <title>أشان | الكتالوج</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ── هيدر ── -->
+  <header id="site-header">
+    <div class="logo-area">
+      <a href="index.html" class="site-name">「أشان」</a>
+      <span class="site-slogan">تكلم بحرية — هويتك في أمان</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">الرئيسية</a>
+      <a href="rules.html">القوانين</a>
+      <button id="dark-toggle" aria-label="تبديل الوضع الداكن">🌙 داكن</button>
+    </nav>
+  </header>
+
+  <!-- ── شريط البوردات ── -->
+  <nav id="board-nav" aria-label="البوردات"></nav>
+
+  <!-- ── المحتوى ── -->
+  <main class="container">
+
+    <div class="board-header">
+      <h1 id="catalog-board-title">الكتالوج</h1>
+      <div class="board-view-btns">
+        <a href="#" id="board-back-link">🗒️ عرض عادي</a>
+      </div>
+    </div>
+
+    <!-- Grid الكتالوج -->
+    <div class="catalog-grid" id="catalog-grid">
+      <div class="loading-spinner" style="grid-column:1/-1">
+        <div class="spinner"></div>
+        <p>جارٍ التحميل…</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <p>أشان &copy; 2024 — <a href="rules.html">القوانين</a> — <a href="index.html">الرئيسية</a></p>
+  </footer>
+
+  <!-- ── Firebase SDKs ── -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+  <!-- ── Scripts ── -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const boardId = getBoardFromURL();
+      const board   = BOARDS.find(b => b.id === boardId);
+
+      // تحديث العناوين
+      document.title = `/${boardId}/ الكتالوج | أشان`;
+      const titleEl = document.getElementById('catalog-board-title');
+      if (titleEl) titleEl.textContent = `📁 كتالوج /${boardId}/ — ${board ? board.name : ''}`;
+
+      const backLink = document.getElementById('board-back-link');
+      if (backLink) backLink.href = `board.html?board=${encodeURIComponent(boardId)}`;
+
+      // تحميل الـ Threads
+      loadCatalog(boardId);
+    });
+
+    function loadCatalog(boardId) {
+      const grid = document.getElementById('catalog-grid');
+      if (!grid) return;
+
+      db.ref(`boards/${boardId}/threads`)
+        .orderByChild('lastActivity')
+        .on('value', (snapshot) => {
+          grid.innerHTML = '';
+
+          const threads = [];
+          snapshot.forEach(child => {
+            threads.push({ ...child.val(), _id: child.key });
+          });
+
+          if (threads.length === 0) {
+            grid.innerHTML = `
+              <div class="empty-state" style="grid-column:1/-1">
+                <div class="empty-icon">📭</div>
+                <p>لا توجد مواضيع في هذا البورد بعد.</p>
+              </div>`;
+            return;
+          }
+
+          // ترتيب من الأحدث للأقدم
+          threads.sort((a, b) => (b.lastActivity || b.timestamp) - (a.lastActivity || a.timestamp));
+
+          threads.forEach(thread => {
+            const item = document.createElement('a');
+            item.className = 'catalog-item';
+            item.href      = `thread.html?board=${encodeURIComponent(boardId)}&thread=${thread._id}`;
+            item.title     = thread.title || 'بدون عنوان';
+
+            const imgHTML = thread.imageUrl
+              ? `<img src="${thread.imageUrl}" alt="صورة" loading="lazy">`
+              : `<div class="catalog-no-img">📝</div>`;
+
+            item.innerHTML = `
+              ${imgHTML}
+              <div class="catalog-title">${escapeHtml(thread.title || thread.content || 'بدون عنوان')}</div>
+              <div class="catalog-replies" id="cat-rc-${thread._id}">💬 ${thread.replyCount || 0} رد</div>
+            `;
+
+            grid.appendChild(item);
+          });
+        }, (err) => {
+          console.error('خطأ:', err);
+          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>❌ خطأ في التحميل.</p></div>`;
+        });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+
+</body>
+</html>
